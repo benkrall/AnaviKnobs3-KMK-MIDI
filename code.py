@@ -1,6 +1,6 @@
 import board
 
-# from kmk.extensions.media_keys import MediaKeys
+from kmk.extensions.media_keys import MediaKeys
 from kmk.extensions.RGB import RGB, AnimationModes
 from kmk.keys import KC
 from kmk.kmk_keyboard import KMKKeyboard
@@ -11,44 +11,56 @@ from kmk.modules.midi import MidiKeys
 knob = KMKKeyboard()
 knob.matrix = KeysScanner([])
 
-# media_keys = MediaKeys()
-# knob.extensions.append(media_keys)
+media_keys = MediaKeys()
+knob.extensions.append(media_keys)
 
-# added midi module
 midi_keys = MidiKeys()
-knob.modules.append(midi_keys)
+knob.extensions.append(midi_keys)
 
 # Rotary encoders that also acts as keys
 encoder_handler = EncoderHandler()
-encoder_handler.divisor = 2
+encoder_handler.divisor = 4
 encoder_handler.pins = (
     (board.D1, board.D2, board.D0),
     (board.D9, board.D10, board.D3),
     (board.D7, board.D8, board.D6),
 )
 
-# setup array for MIDI Channels
-knobsMidi = [1, 1, 1]
-print(knobsMidi[0])
-print(knobsMidi[1])
-print(knobsMidi[2])
+global bkMidiValue
+bkMidiValue = [6, 29, 43]
+
+def bkMidiIncrement(thisMidiChannel):
+    print("midi CC + " + str(thisMidiChannel) + ":" + str(thisMidiChannel))
+    bkMidiValue[thisMidiChannel] = bkMidiValue[thisMidiChannel] + 1
+    return bkMidiValue[thisMidiChannel]
+
+def bkMidiDecrement(thisMidiChannel):
+    print("midi CC - " + str(thisMidiChannel) + ":" + str(thisMidiChannel))
+    bkMidiValue[thisMidiChannel] = bkMidiValue[thisMidiChannel] + 1
+#    return bkMidiValue[thisMidiChannel]
+    return 8
+
+def bkMidiIncrement(thisMidiChannel):
+    print("midi CC + " + str(thisMidiChannel) + ":" + str(bkMidiValue[thisMidiChannel]))
+    bkMidiValue[thisMidiChannel] = bkMidiValue[thisMidiChannel] + 1
+    return bkMidiValue[thisMidiChannel]
+
+def bkMidiDecrement(thisMidiChannel):
+    print("midi CC - " + str(thisMidiChannel) + ":" + str(bkMidiValue[thisMidiChannel]))
+    bkMidiValue[thisMidiChannel] = bkMidiValue[thisMidiChannel] - 1
+    return bkMidiValue[thisMidiChannel]
 
 encoder_handler.map = (
-    (KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 2)),
-    (KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 2)),
-    (KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 2)),
+    ((KC.MIDI_CC(0,bkMidiIncrement(0)), KC.MIDI_CC(0,bkMidiDecrement(0)), KC.N0), (KC.MIDI_CC(1,bkMidiIncrement(1)), KC.MIDI_CC(1,bkMidiDecrement(1)), KC.N0), (KC.MIDI_CC(2,bkMidiIncrement(2)), KC.MIDI_CC(2,bkMidiDecrement(2)), KC.VOLD)),
 )
-
-# original encoder handler map
-# encoder_handler.map = (
-#   ((KC.VOLD, KC.VOLU, KC.MUTE), (KC.UP, KC.DOWN, KC.A), (KC.RIGHT, KC.LEFT, KC.B)),
-# )
-
 
 knob.modules.append(encoder_handler)
 
+print('ANAVI Knobs 3')
 
-print("ANAVI Knobs 3 KMK MIDI")
+print(bkMidiValue[0])
+print(bkMidiValue[1])
+print(bkMidiValue[2])
 
 rgb_ext = RGB(
     pixel_pin=board.NEOPIXEL,
@@ -59,7 +71,7 @@ rgb_ext = RGB(
 )
 knob.extensions.append(rgb_ext)
 
-knob.keymap = [[KC.MUTE]]
+knob.keymap = [[KC.MIDI_CC]]
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     knob.go()
