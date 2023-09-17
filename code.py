@@ -22,13 +22,16 @@ class MidiCcEncoderHandler(EncoderHandler):
         super().__init__()
         self.midiValues = [6, 29, 43]
         print("@init self.midiValues " + str([6, 29, 43]))
+        # no matter what these self.map is set to, it will not output MIDI_CC but will execute the code below
         """self.map = (
             (0, 0, 0), (0, 0, 0), (0, 0, 0),
-        )"""
-
+        )
+        """
+        """
         self.map = (
             ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
         )
+        """
 
     def on_move_do(self, keyboard, encoder_id, state):
         if state['direction'] == -1:  # left
@@ -53,6 +56,7 @@ class MidiCcEncoderHandler(EncoderHandler):
 
 # Rotary encoders that also acts as keys
 encoder_handler = MidiCcEncoderHandler()
+#encoder_handler = MidiCcEncoderHandler()
 encoder_handler.divisor = 4
 encoder_handler.pins = (
     (board.D1, board.D2, board.D0),
@@ -60,16 +64,10 @@ encoder_handler.pins = (
     (board.D8, board.D7, board.D6),
 )
 
-# what is in the map does not seem to matter, each encoder just needs a map
-"""
-encoder_handler.map = (
-    (0, 0, 0), (0, 0, 0), (0, 0, 0),
-)
-
+# each encoder needs a map; assign down here if using stock EncoderHandler, does send MIDI_CC
 encoder_handler.map = (
     ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
 )
-"""
 
 knob.modules.append(encoder_handler)
 
