@@ -48,6 +48,11 @@ encoder_handler.pins = (
     (board.D7, board.D8, board.D6),
 )
 
+encoder_handler.map = (
+    (KC.N0, KC.N0, KC.N0), (KC.N0, KC.N0, KC.N0), (KC.N0, KC.N0, KC.N0),
+)
+
+
 knob.modules.append(encoder_handler)
 
 print('ANAVI Knobs 3')
