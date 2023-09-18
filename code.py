@@ -2,7 +2,7 @@ import board
 import adafruit_midi
 import usb_midi
 
-from kmk.extensions.media_keys import MediaKeys
+# from kmk.extensions.media_keys import MediaKeys
 from kmk.extensions.RGB import RGB, AnimationModes
 from kmk.keys import KC
 from kmk.kmk_keyboard import KMKKeyboard
@@ -11,12 +11,14 @@ from kmk.scanners.keypad import KeysScanner
 from kmk.modules.midi import MidiKeys
 
 from adafruit_midi.control_change import ControlChange
+from adafruit_midi.note_on import  NoteOn
+from adafruit_midi.note_off import  NoteOff
 
 knob = KMKKeyboard()
 knob.matrix = KeysScanner([])
 
-media_keys = MediaKeys()
-knob.extensions.append(media_keys)
+# media_keys = MediaKeys()
+# knob.extensions.append(media_keys)
 
 midi_keys = MidiKeys()
 knob.modules.append(midi_keys)
@@ -32,10 +34,15 @@ class MidiCcEncoderHandler(EncoderHandler):
             # if debug_enabled:
             print('No midi device found.')
 
-        self.midiValues = [6, 29, 43]
+        self.midiValues = [127, 127, 127]
         print("@init self.midiValues " + str(self.midiValues))
 
+        self.map = (
+            ((KC.N0, KC.N0, KC.N0), (KC.N0, KC.N0, KC.N0), (KC.N0, KC.N0, KC.N0)),
+        )
+
     def on_move_do(self, keyboard, encoder_id, state):
+        print("entered on_move_do")
         if state['direction'] == -1:  # left
             incr = -1
             print("moving left")
@@ -56,23 +63,20 @@ class MidiCcEncoderHandler(EncoderHandler):
 
     def on_button_do(self, keyboard, encoder_id, state):
         print("on_button_do " + str(encoder_id))
-        # do nothing
+        #send midi note 100>102 on and then note off
+        if self.midi:
+            self.midi.send(NoteOn(encoder_id+100))
+            time.sleep(1)
+            self.midi.send(NoteOff(encoder_id+100))
 
 # Rotary encoders that also acts as keys
-encoder_handler = MidiCcEncoderHandler() #uncomment this line & comment map below to use custom handler
-#encoder_handler = EncoderHandler() # uncomment this line and map below to actually send MIDI_CC
-encoder_handler.divisor = 4
+encoder_handler = MidiCcEncoderHandler()
+encoder_handler.divisor = 2
 encoder_handler.pins = (
     (board.D1, board.D2, board.D0),
     (board.D10, board.D9, board.D3),
     (board.D8, board.D7, board.D6),
 )
-
-# each encoder needs a map; assign down here if using stock EncoderHandler, does send MIDI_CC
-#
-# encoder_handler.map = (
-#    ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
-#)
 
 knob.modules.append(encoder_handler)
 
