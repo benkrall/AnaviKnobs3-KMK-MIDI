@@ -53,6 +53,7 @@ class MidiCcEncoderHandler(EncoderHandler):
         print("on_button_do " + str(encoder_id))
         # do nothing
 
+""" original jak version of custom handler
 class MidiCcEncoderHandler(EncoderHandler):
     def __init__(self):
         super().__init__()
@@ -71,7 +72,7 @@ class MidiCcEncoderHandler(EncoderHandler):
     def on_button_do(self, keyboard, encoder_id, state):
         print("on_button_do " + str(encoder_id))
         # do nothing
-
+"""
 # Rotary encoders that also acts as keys
 encoder_handler = MidiCcEncoderHandler() #uncomment this line & comment map below to use custom handler
 #encoder_handler = EncoderHandler() # uncomment this line and map below to actually send MIDI_CC
