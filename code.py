@@ -1,4 +1,6 @@
 import board
+import adafruit_midi
+import usb_midi
 
 from kmk.extensions.media_keys import MediaKeys
 from kmk.extensions.RGB import RGB, AnimationModes
@@ -7,6 +9,8 @@ from kmk.kmk_keyboard import KMKKeyboard
 from kmk.modules.encoder import EncoderHandler
 from kmk.scanners.keypad import KeysScanner
 from kmk.modules.midi import MidiKeys
+
+from adafruit_midi.control_change import ControlChange
 
 knob = KMKKeyboard()
 knob.matrix = KeysScanner([])
@@ -20,17 +24,16 @@ knob.modules.append(midi_keys)
 class MidiCcEncoderHandler(EncoderHandler):
     def __init__(self):
         super().__init__()
+
+        try:
+            self.midi = adafruit_midi.MIDI(midi_out=usb_midi.ports[1], out_channel=0)
+        except IndexError:
+            self.midi = None
+            # if debug_enabled:
+            print('No midi device found.')
+        
         self.midiValues = [6, 29, 43]
         print("@init self.midiValues " + str([6, 29, 43]))
-        # no matter what these self.map is set to, it will not output MIDI_CC but will execute the code below
-        """
-        self.map = (
-            ((0, 0, 0), (0, 0, 0), (0, 0, 0)),
-        )
-        """
-        self.map = (
-            ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
-        )
 
     def on_move_do(self, keyboard, encoder_id, state):
         if state['direction'] == -1:  # left
@@ -47,32 +50,14 @@ class MidiCcEncoderHandler(EncoderHandler):
         print("@handler self.midiValues " + str(self.midiValues))
         print("on_move_do control " + str(encoder_id) + " value " + str(self.midiValues[encoder_id])
               + " (incr " + str(incr) + ")")
-        KC.MIDI_CC(encoder_id, self.midiValues[encoder_id])
+        
+        if self.midi:
+            self.midi.send(ControlChange(encoder_id, self.midiValues[encoder_id]))        
 
     def on_button_do(self, keyboard, encoder_id, state):
         print("on_button_do " + str(encoder_id))
         # do nothing
 
-""" original jak version of custom handler
-class MidiCcEncoderHandler(EncoderHandler):
-    def __init__(self):
-        super().__init__()
-        self.midiValues = [6, 29, 43]
-        print("self.midiValues " + str([6, 29, 43]))
-
-    def on_move_do(self, keyboard, encoder_id, state):
-        if state['direction'] == -1:  # left
-            incr = -1
-        else:
-            incr = 1
-        self.miniValues[encoder_id] += incr
-        print("on_move_do " + str(encoder_id) + " = " + str(self.miniValues[encoder_id]) + " (incr " + str(incr) + ")")
-        KC.MIDI_CC(encoder_id, self.miniValues[encoder_id])
-
-    def on_button_do(self, keyboard, encoder_id, state):
-        print("on_button_do " + str(encoder_id))
-        # do nothing
-"""
 # Rotary encoders that also acts as keys
 encoder_handler = MidiCcEncoderHandler() #uncomment this line & comment map below to use custom handler
 #encoder_handler = EncoderHandler() # uncomment this line and map below to actually send MIDI_CC
