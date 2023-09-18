@@ -53,6 +53,25 @@ class MidiCcEncoderHandler(EncoderHandler):
         print("on_button_do " + str(encoder_id))
         # do nothing
 
+class MidiCcEncoderHandler(EncoderHandler):
+    def __init__(self):
+        super().__init__()
+        self.midiValues = [6, 29, 43]
+        print("self.midiValues " + str([6, 29, 43]))
+
+    def on_move_do(self, keyboard, encoder_id, state):
+        if state['direction'] == -1:  # left
+            incr = -1
+        else:
+            incr = 1
+        self.miniValues[encoder_id] += incr
+        print("on_move_do " + str(encoder_id) + " = " + str(self.miniValues[encoder_id]) + " (incr " + str(incr) + ")")
+        KC.MIDI_CC(encoder_id, self.miniValues[encoder_id])
+
+    def on_button_do(self, keyboard, encoder_id, state):
+        print("on_button_do " + str(encoder_id))
+        # do nothing
+
 # Rotary encoders that also acts as keys
 encoder_handler = MidiCcEncoderHandler() #uncomment this line & comment map below to use custom handler
 #encoder_handler = EncoderHandler() # uncomment this line and map below to actually send MIDI_CC
@@ -64,11 +83,10 @@ encoder_handler.pins = (
 )
 
 # each encoder needs a map; assign down here if using stock EncoderHandler, does send MIDI_CC
-"""
-encoder_handler.map = (
-    ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
-)
-"""
+#
+# encoder_handler.map = (
+#    ((KC.MIDI_CC(0, 0), KC.MIDI_CC(0, 1), KC.MIDI_CC(0, 2)), (KC.MIDI_CC(1, 0), KC.MIDI_CC(1, 1), KC.MIDI_CC(1, 2)), (KC.MIDI_CC(2, 0), KC.MIDI_CC(2, 1), KC.MIDI_CC(2, 2))),
+#)
 
 knob.modules.append(encoder_handler)
 
@@ -82,7 +100,6 @@ rgb_ext = RGB(
     animation_mode=AnimationModes.RAINBOW,
 )
 knob.extensions.append(rgb_ext)
-
 knob.keymap = [[KC.N0]]
 
 if __name__ == '__main__':
